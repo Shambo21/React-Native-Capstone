@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Alert, Image, StyleSheet, Text, TextInput, View, Pressable } from "react-native";
 import Button from "../components/Button";
 import { validateEmail } from "../utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
+import AuthContext from "../components/context/AuthContext";
 
 const OnboardingScreen = ({ navigation, toProfile }) => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('');
 
     const isEmailValid = validateEmail(email);
+
+    const {logIn} = useContext(AuthContext)
 
     const getData = async () => {
         try {
@@ -66,7 +69,7 @@ const OnboardingScreen = ({ navigation, toProfile }) => {
                 />
             </View>
             <Button
-                onPress={() => {setData(); navigation.navigate('Profile')}}
+                onPress={() => {setData(); logIn()}}
                 disabled={!isEmailValid}
             >
                 Next

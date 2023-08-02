@@ -17,8 +17,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#C8C8C8'
   },
   logo: {
-    height: 100,
-    width: '80%',
+    height: 80,
+    width: '70%',
     marginTop: 10,
     resizeMode: "contain",
     marginLeft: 'auto',

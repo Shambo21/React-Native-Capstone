@@ -1,25 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, Image, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
 import { validateEmail, getRandomColor, getInitials } from "../utils";
 import * as ImagePicker from 'expo-image-picker';
+import AuthContext from '../components/context/AuthContext';
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
-export default function ProfileScreen({ route, navigation, onLogout}) {
+export default function ProfileScreen({ route, navigation, onLogout }) {
 
 
     let fullName = ['', '']
-    let eAddress =''
-    if(route.params){
+    let eAddress = ''
+    if (route.params) {
         let { name, emailAddress } = route.params;
         if (name) fullName = name.split(' ')
-        eAddress= emailAddress
+        eAddress = emailAddress
     }
-
+    const[isLoading, setIsLoading] = useState(true)
     const [selectedImage, setSelectedImage] = useState(null);
     const [firstName, setFirstName] = useState(fullName[0])
     const [lastName, setLastName] = useState(fullName[1])
@@ -29,24 +30,38 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
     const [check2, setCheck2] = useState(true)
     const [check3, setCheck3] = useState(true)
     const [check4, setCheck4] = useState(true)
-    const[initials, setInitials]=useState('')
+    const [initials, setInitials] = useState('')
 
-    const isEmailValid = validateEmail(email);
+    useEffect(() => {
+        if (firstName.length == 0 || lastName.length == 0) setInitials('')
+        else setInitials(firstName[0] + lastName[0])
+    }, [firstName, lastName])
 
-
-    const setFullName = () =>{
-        fullName=[firstName, lastName]
+    const onChangeNumber = (text) => {
+        let formattedNo = formatMobileNumber(text);
+        setPhone(formattedNo)
     }
-    useEffect(()=>{
-        if(firstName.length==0||lastName.length==0) setInitials('')
-        else setInitials(firstName[0]+lastName[0])
-    },[firstName,lastName])
+
+    const formatMobileNumber = (text) => {
+        var cleaned = ("" + text).replace(/\D/g, "");
+        var match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
+        if (match) {
+            var intlCode = match[1] ? "+1 " : "",
+                number = [intlCode, "(", match[2], ") ", match[3], "-", match[4]].join(
+                    ""
+                );
+            return number;
+        }
+        return text;
+    }
+
+    const {logOut} = useContext(AuthContext)
 
     const getData = async () => {
-        try{
+        try {
             const response = await AsyncStorage.getItem('Profile')
-            const value = response !=null ? JSON.parse(response):null
-            if(value !== null){
+            const value = response != null ? JSON.parse(response) : null
+            if (value !== null) {
                 setSelectedImage(value.selectedImage)
                 setFirstName(value.firstName)
                 setLastName(value.lastName)
@@ -56,10 +71,12 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
                 setCheck2(value.check2)
                 setCheck3(value.check3)
                 setCheck4(value.check4)
-            }else{
+                setIsLoading(false)
+            } else {
+                setIsLoading(false)
                 getOnboardingData()
             }
-        }catch(e){
+        } catch (e) {
             Alert.alert("could not read existing data")
         }
     }
@@ -70,7 +87,7 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
             if (value !== null) {
                 let name = value.name.split(' ')
                 setFirstName(name[0])
-                if(name.length>1)
+                if (name.length > 1)
                     setLastName(name[1])
                 setEmail(value.email)
             }
@@ -92,13 +109,13 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
                 check3: check3,
                 check4: check4,
             }
-          await AsyncStorage.setItem('Profile', JSON.stringify(obj))
-          Alert.alert("Profile has been saved")
+            await AsyncStorage.setItem('Profile', JSON.stringify(obj))
+            Alert.alert("Profile has been saved")
         }
         catch (e) {
             Alert.alert("could not save data" + e.message)
         }
-      }
+    }
 
     const pickImage = async () => {
         // No permissions request is necessary for launching the image librar
@@ -123,11 +140,11 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
         setSelectedImage('')
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         getData();
-      },[])
+    }, [])
 
-
+if(!isLoading)
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.text}>Personal Information</Text>
@@ -171,7 +188,7 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
                 <TextInput
                     style={styles.input}
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={onChangeNumber}
                     keyboardType="phone-pad"
                     textContentType="telephoneNumber"
                     placeholder={"(000) 000-0000"}
@@ -210,7 +227,7 @@ export default function ProfileScreen({ route, navigation, onLogout}) {
                 <Text style={styles.cbLabel}>Newsletter</Text>
             </View>
             <View style={styles.row}>
-                <Button name="Logout" button3={true} onPress={()=> {AsyncStorage.clear(); navigation.navigate('Onboarding')} }>Log out</Button>
+                <Button name="Logout" button3={true} onPress={() => { AsyncStorage.clear(); logOut() }}>Log out</Button>
             </View>
             <View style={styles.row}>
                 <Button name="SaveChanges" onPress={() => setData()}>Save Changes</Button>
@@ -250,13 +267,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     label: {
-        fontFamily: 'Markazi',
         marginLeft: 10,
         fontSize: 10,
         fontWeight: '600'
     },
     cbLabel: {
-        fontFamily: 'Markazi',
         marginLeft: 10,
         fontSize: 14,
         fontWeight: '600',
