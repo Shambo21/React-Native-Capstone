@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, Image} from 'react-native';
 
-export default function LittleLemonHeader() {
+export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Image
                 style={styles.logo}
-                source={require("../assets/Logo.png")}
+                source={require("../assets/little-lemon-logo.png")}
             />
     </View>
   );
@@ -14,11 +14,12 @@ export default function LittleLemonHeader() {
 
 const styles = StyleSheet.create({
   container: {
+    flex:1,
     backgroundColor: '#C8C8C8'
   },
   logo: {
-    height: 100,
-    width: '80%',
+    height: '100%',
+    width: '100%',
     marginTop: 10,
     resizeMode: "contain",
     marginLeft: 'auto',
