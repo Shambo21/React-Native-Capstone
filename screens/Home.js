@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { SafeAreaView, View, Text, FlatList, StyleSheet, Image, Alert } from 'react-native';
+import { SafeAreaView, View, Text, FlatList, StyleSheet, Image, Alert, TouchableHighlight} from 'react-native';
 import debounce from 'lodash.debounce';
 import { Searchbar } from 'react-native-paper';
 import {
@@ -9,19 +9,34 @@ import {
   filterByQueryAndCategories,
 } from '../components/Database';
 import Filters from '../components/Filters';
+import ProfilePic from '../components/ProfilePic';
 
 import { useUpdateEffect } from '../utils';
 
 const API_URL = 'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/capstone.json'
 const sections = ['mains', 'desserts', 'starters'];
 
-export default HomeScreen = () => {
+export default HomeScreen = ({navigation}) => {
 
   const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [searchBarText, setSearchBarText] = useState('');
   const [filterSelections, setFilterSelections] = useState(sections.map(() => false));
+
+  const LogoHeader = () => {
+    return (
+      < >
+        <Image
+          style={{ width: 200, resizeMode: 'contain' }}
+          source={require("../assets/Logo.png")}
+        />
+        <TouchableHighlight onPress={() => navigation.navigate('Profile')} >
+          <ProfilePic size={40}/>
+        </TouchableHighlight>
+      </>
+    )
+  }
 
   const fetchData = async () => {
     try {
@@ -41,7 +56,6 @@ export default HomeScreen = () => {
       try {
         await createTable();
         let menuItems = await getMenuItems();
-        console.log(menuItems)
         if (!menuItems.length) {
           const menuItems = await fetchData();
           menuItems.forEach((o, i) => { o.id = i + 1; });
@@ -55,6 +69,7 @@ export default HomeScreen = () => {
         Alert.alert(e.message);
       }
     })();
+    navigation?.setOptions({ headerTitle: (props) => <LogoHeader {...props} /> })
   }, []);
 
   useUpdateEffect(() => {
@@ -169,12 +184,12 @@ const styles = StyleSheet.create({
     marginBottom: 5
   },
   row: {
-    borderTopWidth:1,
-    borderColor: 'grey',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     paddingBottom: 10,
-    marginBottom: 10
+    marginBottom: 10,
+    borderBottomWidth:1,
+    borderColor: 'grey',
   },
   title: {
     color: "#333333",
@@ -224,7 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontStyle: 'normal',
     fontWeight: 600,
-    marginTop: 30,
+    marginTop: 40,
     paddingLeft: 10,
   },
   descText: {

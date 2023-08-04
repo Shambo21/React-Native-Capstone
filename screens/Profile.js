@@ -5,6 +5,7 @@ import Button from '../components/Button';
 import { validateEmail, getRandomColor, getInitials } from "../utils";
 import * as ImagePicker from 'expo-image-picker';
 import AuthContext from '../components/context/AuthContext';
+import ProfilePic from '../components/ProfilePic';
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -20,8 +21,9 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
         if (name) fullName = name.split(' ')
         eAddress = emailAddress
     }
+
     const[isLoading, setIsLoading] = useState(true)
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedImage, setSelectedImage] = useState('');
     const [firstName, setFirstName] = useState(fullName[0])
     const [lastName, setLastName] = useState(fullName[1])
     const [email, setEmail] = useState(eAddress);
@@ -32,10 +34,6 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
     const [check4, setCheck4] = useState(true)
     const [initials, setInitials] = useState('')
 
-    useEffect(() => {
-        if (firstName.length == 0 || lastName.length == 0) setInitials('')
-        else setInitials(firstName[0] + lastName[0])
-    }, [firstName, lastName])
 
     const onChangeNumber = (text) => {
         let formattedNo = formatMobileNumber(text);
@@ -107,7 +105,7 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
                 check1: check1,
                 check2: check2,
                 check3: check3,
-                check4: check4,
+                check4: check4
             }
             await AsyncStorage.setItem('Profile', JSON.stringify(obj))
             Alert.alert("Profile has been saved")
@@ -117,25 +115,19 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
         }
     }
 
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image librar
-        ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        }).then((result) => {
-            console.log(result);
+    const pickImage= async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          allowsEditing: true,
+          quality: 1,
+        });
 
-            if (!result.canceled) {
-                setSelectedImage(result.assets[0].uri);
-                console.log(selectedImage)
-            }
-            else {
-                Alert.alert("You did not select an image")
-            }
-        })
-    };
+        if (!result.canceled) {
+          setSelectedImage(result.assets[0].uri);
+        } else {
+          alert('You did not select any image.');
+        }
+      };
+
     const removeImage = () => {
         setSelectedImage('')
     }
@@ -149,10 +141,7 @@ if(!isLoading)
         <ScrollView style={styles.container}>
             <Text style={styles.text}>Personal Information</Text>
             <View style={styles.imageContainer}>
-                {selectedImage ? <Image source={{ uri: selectedImage }} style={styles.profilePic} /> :
-                    <View style={styles.CircleShape}>
-                        <Text style={styles.circleText}>{initials}</Text>
-                    </View>}
+                <ProfilePic size={80}/>
             </View>
             <View style={styles.row}>
                 <Button name="Change" onPress={pickImage}>Change</Button>
@@ -230,7 +219,7 @@ if(!isLoading)
                 <Button name="Logout" button3={true} onPress={() => { AsyncStorage.clear(); logOut() }}>Log out</Button>
             </View>
             <View style={styles.row}>
-                <Button name="SaveChanges" onPress={() => setData()}>Save Changes</Button>
+                <Button name="SaveChanges" onPress={() => {setData(); navigation.navigate('Home')} }>Save Changes</Button>
                 <Button button2={true} name="DiscardChanges" onPress={() => getData()} >Discard Changes</Button>
             </View>
         </ScrollView>
